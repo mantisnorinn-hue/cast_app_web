@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cast app</title>
+  <meta name="theme-color" content="#111418">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Cast app</h1>
+    <nav>
+      <button data-tab="host" class="tab active">共有する</button>
+      <button data-tab="view" class="tab">見る</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Sender -->
+    <section id="host" class="panel">
+      <div class="row">
+        <label>画質
+          <select id="preset"></select>
+        </label>
+        <label>コーデック
+          <select id="codec">
+            <option value="auto">自動(VP9 優先)</option>
+            <option value="av1">AV1(最小・負荷高)</option>
+            <option value="vp9">VP9</option>
+            <option value="h264">H.264(省電力)</option>
+          </select>
+        </label>
+        <label class="check"><input type="checkbox" id="audio"> 音声も共有</label>
+      </div>
+      <div class="row">
+        <button id="start" class="primary">ウィンドウ/画面を選んで共有開始</button>
+        <button id="switch" hidden>共有対象を変更</button>
+        <button id="stop" hidden>停止</button>
+      </div>
+      <div id="share" hidden>
+        <p class="code-label">参加コード</p>
+        <p id="code" class="code"></p>
+        <div class="row">
+          <input id="link" readonly>
+          <button id="copy">リンクをコピー</button>
+          <button id="castHost" hidden>Chromecast に送る</button>
+        </div>
+        <p id="surface" class="muted"></p>
+        <p>視聴者: <span id="viewers">0</span></p>
+        <p id="hostStats" class="muted mono"></p>
+      </div>
+      <video id="preview" muted playsinline hidden></video>
+      <p id="hostMsg" class="msg"></p>
+    </section>
+
+    <!-- Viewer -->
+    <section id="view" class="panel" hidden>
+      <div class="row">
+        <input id="joinCode" placeholder="参加コード(6文字)" maxlength="6" autocomplete="off">
+        <button id="join" class="primary">見る</button>
+        <button id="fullscreen">全画面</button>
+        <button id="castView" hidden>Chromecast に送る</button>
+      </div>
+      <p id="viewMsg" class="msg"></p>
+      <video id="remote" autoplay playsinline controls></video>
+      <p id="viewStats" class="muted mono"></p>
+      <details>
+        <summary>Chromecast / テレビで見るには</summary>
+        <p>このページを Chrome で開き、メニューの「キャスト」→「タブをキャスト」を選ぶと、テレビに映せます。
+          受信アプリを登録済みの場合は「Chromecast に送る」ボタンで、テレビが直接つながります。</p>
+        <p>ブラウザがあるテレビ・Raspberry Pi では <code>/receiver.html?room=コード</code> を開くと全画面で表示します。</p>
+      </details>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

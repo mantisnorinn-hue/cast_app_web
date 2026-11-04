@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cast app receiver</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; color: #ccc; overflow: hidden;
+      font: 24px/1.4 system-ui, "Segoe UI", "Noto Sans JP", sans-serif; }
+    video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
+    #overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 16px; text-align: center; }
+    #overlay[hidden] { display: none; }
+    input, button { font: inherit; padding: 12px 16px; border-radius: 8px; border: 1px solid #444;
+      background: #111; color: #eee; }
+    input { width: 8em; text-transform: uppercase; letter-spacing: .2em; text-align: center; }
+  </style>
+</head>
+<body>
+  <!-- Full-screen viewer for TVs, Chromecast (custom receiver) and Raspberry Pi kiosks. -->
+  <video id="v" autoplay playsinline muted></video>
+  <div id="overlay">
+    <div id="msg">参加コードを入力してください</div>
+    <form id="form"><input id="code" maxlength="6" autocomplete="off"> <button>表示</button></form>
+  </div>
+  <script type="module">
+    import { ViewerSession } from './common.js';
+    import { CAST_NAMESPACE } from './cast.js';
+
+    const video = document.getElementById('v');
+    const overlay = document.getElementById('overlay');
+    const msg = document.getElementById('msg');
+    const viewer = new ViewerSession(video);
+
+    viewer.addEventListener('status', (e) => {
+      msg.textContent = e.detail;
+      overlay.hidden = e.detail === '視聴中';
+    });
+    // Try with sound once playing; browsers may block it, then stay muted.
+    video.addEventListener('playing', () => { video.muted = false; video.play().catch(() => { video.muted = true; video.play(); }); });
+
+    function join(code) {
+      code = String(code || '').trim().toUpperCase();
+      if (!code) return;
+      msg.textContent = '接続中…';
+      document.getElementById('form').hidden = true;
+      viewer.join(code);
+    }
+    document.getElementById('form').onsubmit = (e) => { e.preventDefault(); join(document.getElementById('code').value); };
+
+    const room = new URLSearchParams(location.search).get('room');
+    if (room) join(room);
+
+    // Running on a Chromecast as a custom receiver: the sender passes the room code.
+    if (/CrKey/.test(navigator.userAgent)) {
+      const s = document.createElement('script');
+      s.src = 'https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js';
+      s.onload = () => {
+        const ctx = cast.framework.CastReceiverContext.getInstance();
+        ctx.addCustomMessageListener(CAST_NAMESPACE, (e) => join(e.data.room));
+        const options = new cast.framework.CastReceiverOptions();
+        options.disableIdleTimeout = true;
+        options.customNamespaces = { [CAST_NAMESPACE]: cast.framework.system.MessageType.JSON };
+        ctx.start(options);
+      };
+      document.head.appendChild(s);
+    }
+  </script>
+</body>
+</html>
