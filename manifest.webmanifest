@@ -1,0 +1,12 @@
+{
+  "name": "Cast app",
+  "short_name": "Cast",
+  "description": "軽量な画面共有(ウィンドウ/全画面を選んで共有)",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111418",
+  "theme_color": "#111418",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
